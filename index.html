@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>9X PANEL MIG FF  // Admin & User Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060709;
+      --card: rgba(16, 20, 26, 0.78);
+      --border: rgba(255, 255, 255, 0.09);
+      --green: #00ff88;
+      --green-soft: rgba(0, 255, 136, 0.14);
+      --yellow: #ffe600;
+      --yellow-soft: rgba(255, 230, 0, 0.14);
+      --red: #ff3b5c;
+      --red-soft: rgba(255, 59, 92, 0.15);
+      --text: #f4f6f9;
+      --muted: #8e99ab;
+      --font-head: 'Orbitron', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --radius: 14px;
+      --pill-size: 52px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 38px 38px;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: fixed;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      filter: blur(115px);
+      opacity: 0.22;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .orb-g { background: var(--green); top: -80px; left: -80px; }
+    .orb-y { background: var(--yellow); bottom: -80px; right: -80px; }
+
+    .hidden { display: none !important; }
+    .text-green { color: var(--green); }
+    .text-yellow { color: var(--yellow); }
+    .text-red { color: var(--red); }
+    .muted { color: var(--muted); font-size: 0.86rem; }
+
+    h1, h2, h3, .brand { font-family: var(--font-head); letter-spacing: 0.04em; }
+
+    .floating-hud-wrapper {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .circular-timer-orb {
+      width: var(--pill-size);
+      height: var(--pill-size);
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #161b22, #040507 75%);
+      border: 2px solid var(--green);
+      box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.85),
+        0 0 16px rgba(0, 255, 136, 0.55),
+        inset 0 0 10px rgba(0, 255, 136, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      padding: 3px;
+      transition: width 0.15s ease, height 0.15s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .circular-timer-orb.game-mode {
+      border-color: var(--yellow);
+      box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.9),
+        0 0 20px rgba(255, 230, 0, 0.65),
+        inset 0 0 10px rgba(255, 230, 0, 0.25);
+    }
+
+    .circular-timer-orb.low-time {
+      border-color: var(--red);
+      box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.85),
+        0 0 20px rgba(255, 59, 92, 0.75),
+        inset 0 0 10px rgba(255, 59, 92, 0.35);
+      animation: pulseWarn 0.8s infinite;
+    }
+
+    @keyframes pulseWarn {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.07); }
+    }
+
+    .orb-tag-mini {
+      font-family: var(--font-head);
+      font-size: calc(var(--pill-size) * 0.12);
+      font-weight: 700;
+      color: var(--yellow);
+      line-height: 1;
+      margin-bottom: 1px;
+      text-transform: uppercase;
+    }
+
+    .orb-time-text {
+      font-family: var(--font-head);
+      font-weight: 900;
+      font-size: calc(var(--pill-size) * 0.17);
+      color: var(--green);
+      line-height: 1.05;
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+
+    .circular-timer-orb.low-time .orb-time-text {
+      color: var(--red);
+    }
+
+    .orb-sub-dot {
+      width: calc(var(--pill-size) * 0.09);
+      height: calc(var(--pill-size) * 0.09);
+      border-radius: 50%;
+      background: var(--green);
+      margin-top: 2px;
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .orb-controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(10, 13, 18, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 230, 0, 0.35);
+      border-radius: 999px;
+      padding: 4px 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
+    }
+
+    .orb-ctrl-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--yellow);
+      font-weight: 900;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orb-ctrl-btn:hover {
+      background: var(--yellow);
+      color: #000;
+    }
+
+    .orb-slider {
+      width: 85px;
+      height: 4px;
+      padding: 0;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+
+    .orb-size-lbl {
+      font-family: monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .expiry-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 4, 6, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 20000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+
+    .expiry-modal-box {
+      max-width: 430px;
+      width: 100%;
+      background: linear-gradient(165deg, rgba(28, 12, 16, 0.96), rgba(12, 14, 18, 0.98));
+      border: 2px solid var(--red);
+      border-radius: 18px;
+      padding: 1.8rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 0 45px rgba(255, 59, 92, 0.45);
+      animation: popScale 0.25s ease;
+    }
+
+    @keyframes popScale {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .warn-icon-ring {
+      width: 62px;
+      height: 62px;
+      margin: 0 auto 0.9rem;
+      border-radius: 50%;
+      background: var(--red-soft);
+      border: 2px solid var(--red);
+      color: var(--red);
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 22px rgba(255, 59, 92, 0.4);
+    }
+
+    .warn-title {
+      font-family: var(--font-head);
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--red);
+      letter-spacing: 0.06em;
+      margin-bottom: 0.65rem;
+    }
+
+    .warn-main-msg {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(255, 59, 92, 0.14);
+      border: 1px solid rgba(255, 59, 92, 0.38);
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      margin-bottom: 0.55rem;
+    }
+
+    .warn-risk-sub {
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .warn-seller-msg {
+      font-family: var(--font-head);
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--yellow);
+      margin-bottom: 1.25rem;
+      letter-spacing: 0.04em;
+    }
+
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    .topbar {
+      max-width: 1180px;
+      margin: 4rem auto 1rem;
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .brand {
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+
+    .brand span { color: var(--green); }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .lang-select {
+      width: auto;
+      min-width: 145px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 9px;
+      background: rgba(8, 10, 14, 0.92);
+      border: 1px solid rgba(255, 230, 0, 0.35);
+      color: var(--yellow);
+    }
+
+    .switch-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 0.3rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-head);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.55rem 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active.user-tab {
+      background: var(--green);
+      color: #050806;
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.35);
+    }
+
+    .tab-btn.active.admin-tab {
+      background: var(--yellow);
+      color: #090800;
+      box-shadow: 0 0 16px rgba(255, 230, 0, 0.35);
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto 3rem;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-family: var(--font-head);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.75rem 1.15rem;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-block { width: 100%; }
+    .btn-sm { padding: 0.42rem 0.72rem; font-size: 0.7rem; }
+
+    .btn-green {
+      background: var(--green);
+      color: #040805;
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.25);
+    }
+    .btn-green:hover:not(:disabled) { box-shadow: 0 0 26px rgba(0, 255, 136, 0.45); transform: translateY(-1px); }
+
+    .btn-yellow {
+      background: var(--yellow);
+      color: #090800;
+      box-shadow: 0 0 18px rgba(255, 230, 0, 0.25);
+    }
+    .btn-yellow:hover:not(:disabled) { box-shadow: 0 0 26px rgba(255, 230, 0, 0.45); transform: translateY(-1px); }
+
+    .btn-outline-y {
+      background: var(--yellow-soft);
+      border-color: rgba(255, 230, 0, 0.4);
+      color: var(--yellow);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: var(--red-soft);
+      border-color: rgba(255, 59, 92, 0.4);
+      color: var(--red);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    select {
+      width: 100%;
+      background: rgba(8, 10, 14, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text);
+      padding: 0.72rem 0.9rem;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.12);
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.95rem;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.9rem;
+    }
+
+    .stat-num { font-size: 1.8rem; margin-top: 0.3rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .b-green { background: var(--green-soft); color: var(--green); border: 1px solid rgba(0, 255, 136, 0.35); }
+    .b-yellow { background: var(--yellow-soft); color: var(--yellow); border: 1px solid rgba(255, 230, 0, 0.35); }
+    .b-red { background: var(--red-soft); color: var(--red); border: 1px solid rgba(255, 59, 92, 0.35); }
+    .b-muted { background: rgba(255, 255, 255, 0.08); color: var(--muted); }
+
+    .table-wrap { overflow-x: auto; margin-top: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td {
+      padding: 0.75rem 0.65rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { font-family: var(--font-head); font-size: 0.7rem; color: var(--muted); }
+    .code-txt { font-family: monospace; color: var(--yellow); font-weight: 700; font-size: 0.92rem; }
+
+    .cd-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    .cd-box {
+      background: rgba(7, 9, 13, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 0.4rem;
+      text-align: center;
+    }
+    .cd-box.active-sec {
+      border-color: rgba(0, 255, 136, 0.45);
+      background: rgba(0, 255, 136, 0.06);
+    }
+    .cd-val { font-family: var(--font-head); font-size: 1.75rem; font-weight: 900; color: var(--green); display: block; }
+    .cd-lbl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.08em; }
+
+    .vpn-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      background: rgba(9, 12, 18, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .vpn-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .vpn-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .launcher-card { position: relative; overflow: hidden; }
+    .lock-layer {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 7, 9, 0.9);
+      backdrop-filter: blur(7px);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .info-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.7rem 0.95rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.95rem;
+    }
+
+    .game-box {
+      background: rgba(9, 11, 15, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.85rem;
+    }
+
+    .msg-box {
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.86rem;
+    }
+    .msg-ok { background: var(--green-soft); border: 1px solid var(--green); color: var(--green); }
+    .msg-err { background: var(--red-soft); border: 1px solid var(--red); color: #ff99aa; }
+    .msg-warn { background: var(--yellow-soft); border: 1px solid var(--yellow); color: var(--yellow); }
+
+    .toast-wrap {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      background: #12161d;
+      border-left: 4px solid var(--green);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+    .toast.err { border-left-color: var(--red); }
+
+    @media (max-width: 560px) {
+      .cd-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <div class="orb orb-g"></div>
+  <div class="orb orb-y"></div>
+  <div id="toast-wrap" class="toast-wrap"></div>
+
+  <div id="floating-timer-hud" class="floating-hud-wrapper hidden">
+    <div id="circular-timer-orb" class="circular-timer-orb" title="Tap to adjust logo size (Flashlight -> Camera)" onclick="toggleOrbControls()">
+      <span id="orb-game-tag" class="orb-tag-mini hidden">FF MAX</span>
+      <span id="orb-time-text" class="orb-time-text">00:00:00</span>
+      <span class="orb-sub-dot"></span>
+    </div>
+
+    <div id="orb-controls-bar" class="orb-controls-bar hidden">
+      <button type="button" class="orb-ctrl-btn" onclick="stepOrbSize(-4)" title="Smaller (Flashlight Dot)">-</button>
+      <input id="orb-size-slider" class="orb-slider" type="range" min="28" max="76" value="52" oninput="setOrbSize(this.value)" />
+      <button type="button" class="orb-ctrl-btn" onclick="stepOrbSize(4)" title="Larger (Camera Cutout)">+</button>
+      <span id="orb-size-lbl" class="orb-size-lbl">52px</span>
+    </div>
+  </div>
+
+  <div id="expiry-warning-modal" class="expiry-modal-backdrop hidden">
+    <div class="expiry-modal-box">
+      <div class="warn-icon-ring">&#9888;</div>
+      <div class="warn-title">WARNING</div>
+      <div class="warn-main-msg">Don't use ban risk</div>
+      <div class="warn-risk-sub">Ban risk</div>
+      <div class="warn-seller-msg">Contact your seller to buy key</div>
+      <button type="button" class="btn btn-yellow btn-block" onclick="closeExpiryModalAndFocusInput()">
+        ENTER NEW KEY
+      </button>
+    </div>
+  </div>
+
+  <header class="card topbar">
+    <div class="brand">9X <span>KEY</span></div>
+
+    <div class="top-controls">
+      <select id="lang-select" class="lang-select" aria-label="Select Language" onchange="setLanguage(this.value)">
+        <option value="en" selected>English</option>
+        <option value="hi">Hindi (हिन्दी)</option>
+        <option value="hinglish">Hinglish</option>
+        <option value="bn">Bengali (বাংলা)</option>
+        <option value="it">Italian (Italiano)</option>
+      </select>
+
+      <div class="switch-tabs">
+        <button id="tab-user-btn" class="tab-btn user-tab active" onclick="switchPanel('user')">USER PANEL</button>
+        <button id="tab-admin-btn" class="tab-btn admin-tab" onclick="switchPanel('admin')">ADMIN PANEL</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="user-panel" class="container">
+    <div id="user-expired-alert" class="msg-box msg-err hidden">
+      <strong id="t-expired-title">WARNING:</strong>
+      <span id="t-expired-desc">Don't use ban risk — Ban risk. Contact your seller to buy key.</span>
+    </div>
+
+    <section class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+        <div>
+          <h2 id="t-act-heading">KEY ACTIVATION</h2>
+          <p id="t-act-sub" class="muted">Countdown starts from server time once you activate your key</p>
+        </div>
+        <span id="user-session-badge" class="badge b-muted">CONNECTING...</span>
+      </div>
+
+      <div style="display:flex; gap:0.7rem; flex-wrap:wrap;">
+        <input id="user-key-input" type="text" placeholder="ENTER KEY HERE (e.g. VIP-1DAY-9X2A)" style="flex:1; min-width:210px; font-family:monospace; text-transform:uppercase;" />
+        <button id="activate-btn" class="btn btn-green" onclick="activateKey()">ACTIVATE KEY</button>
+      </div>
+
+      <div id="user-feedback" class="msg-box hidden"></div>
+    </section>
+
+    <section id="active-license-card" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div>
+          <span id="t-active-badge" class="badge b-green">ACTIVE LICENSE</span>
+          <h3 id="active-key-label" style="margin-top:0.35rem;">--</h3>
+        </div>
+        <div style="text-align:right;">
+          <span id="t-expires-at-lbl" class="muted">EXPIRES AT</span>
+          <div id="active-expiry-txt" class="text-yellow" style="font-weight:700; font-size:0.92rem;">--</div>
+        </div>
+      </div>
+
+      <div class="cd-grid">
+        <div class="cd-box">
+          <span id="cd-d" class="cd-val">00</span>
+          <span id="t-cd-days" class="cd-lbl">DAYS</span>
+        </div>
+        <div class="cd-box">
+          <span id="cd-h" class="cd-val">00</span>
+          <span id="t-cd-hours" class="cd-lbl">HOURS</span>
+        </div>
+        <div class="cd-box">
+          <span id="cd-m" class="cd-val">00</span>
+          <span id="t-cd-mins" class="cd-lbl">MINUTES</span>
+        </div>
+        <div class="cd-box active-sec">
+          <span id="cd-s" class="cd-val">00</span>
+          <span id="t-cd-secs" class="cd-lbl">SECONDS</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="launcher-card" class="card launcher-card">
+      <div id="launcher-lock" class="lock-layer">
+        <div>
+          <div style="font-size:2rem; margin-bottom:0.4rem;">&#128274;</div>
+          <h3 id="t-lock-title" class="text-yellow">LAUNCHER LOCKED</h3>
+          <p id="t-lock-desc" class="muted" style="margin-top:0.3rem;">Activate a valid key first to unlock game launch buttons.</p>
+        </div>
+      </div>
+
+      <h2 id="t-launcher-heading" style="margin-bottom:0.8rem;">GAME LAUNCHER</h2>
+
+      <div class="vpn-bar">
+        <div class="vpn-meta">
+          <div class="vpn-title-row">
+            <strong id="t-orb-setting-lbl" style="font-family:var(--font-head); font-size:0.85rem;">FLOATING TIMER LOGO SIZE</strong>
+            <span class="badge b-green">EXACT KEY TIMER</span>
+          </div>
+          <span id="t-orb-setting-sub" class="muted">Adjust circular timer from Flashlight dot (28px) to Camera size (76px)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <button type="button" class="btn btn-sm btn-ghost" onclick="setOrbSize(30)">Flashlight (30px)</button>
+          <button type="button" class="btn btn-sm btn-outline-y" onclick="setOrbSize(52)">Camera (52px)</button>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="setOrbSize(70)">Large (70px)</button>
+        </div>
+      </div>
+
+      <div class="vpn-bar">
+        <div class="vpn-meta">
+          <div class="vpn-title-row">
+            <strong id="t-vpn-label" style="font-family:var(--font-head); font-size:0.85rem;">VPN CONNECTION</strong>
+            <span id="vpn-state-badge" class="badge b-muted">DISCONNECTED</span>
+          </div>
+          <span id="vpn-sub-status" class="muted">Ready for official VPN API integration (no fake tunnel)</span>
+        </div>
+        <button id="vpn-toggle-btn" class="btn btn-yellow" onclick="toggleVpnConnection()">CONNECT VPN</button>
+      </div>
+
+      <div class="info-strip">
+        <div><span id="t-arch-lbl">ARCH</span>: <strong id="arch-info" class="text-yellow">Detecting...</strong></div>
+        <div><span id="t-dev-lbl">DEVICE</span>: <strong id="os-info" class="text-green">Detecting...</strong></div>
+        <div><span id="t-api-lbl">VPN API</span>: <strong id="vpn-api-status" class="muted">OFF (ADD YOUR API)</strong></div>
+      </div>
+
+      <div class="games-grid">
+        <div class="game-box">
+          <div>
+            <h3>FREE FIRE MAX</h3>
+            <div class="muted">open=": com.dts.freefiremax.</div>
+          </div>
+          <button id="btn-ffmax" class="btn btn-green btn-block" disabled onclick="launchGame('com.dts.freefiremax', 'Free Fire MAX')">
+            &#9654; OPEN FREE FIRE MAX
+          </button>
+        </div>
+
+        <div class="game-box">
+          <div>
+            <h3>FREE FIRE INDIA</h3>
+            <div class="muted">pkg: com.dts.freefireth</div>
+          </div>
+          <button id="btn-ffindia" class="btn btn-yellow btn-block" disabled onclick="launchGame('com.dts.freefireth', 'Free Fire India')">
+            &#9654; OPEN FREE FIRE INDIA
+          </button>
+        </div>
+
+        <div class="game-box">
+          <div>
+            <h3>FREE FIRE</h3>
+            <div class="muted">pkg: com.dts.freefireth</div>
+          </div>
+          <button id="btn-ff" class="btn btn-outline-y btn-block" disabled onclick="launchGame('com.dts.freefireth', 'Free Fire')">
+            &#9654; OPEN FREE FIRE
+          </button>
+        </div>
+      </div>
+
+      <div id="launcher-msg" class="msg-box msg-warn hidden"></div>
+    </section>
+  </main>
+
+  <main id="admin-panel" class="container hidden">
+    <section id="admin-login-card" class="card" style="max-width:440px; margin:1.5rem auto; width:100%;">
+      <span class="badge b-yellow">ADMIN AUTH</span>
+      <h2 id="t-adm-login-title" style="margin-top:0.5rem;">ADMIN PANEL LOGIN</h2>
+      <p id="t-adm-login-sub" class="muted" style="margin-bottom:1rem;">Sign in with your Firebase Admin Email &amp; Password</p>
+
+      <div style="display:flex; flex-direction:column; gap:0.85rem;">
+        <div>
+          <label id="t-adm-email-lbl">Admin Email</label>
+          <input id="admin-email" type="email" placeholder="admin@example.com" />
+        </div>
+        <div>
+          <label id="t-adm-pass-lbl">Password</label>
+          <input id="admin-pass" type="password" placeholder="••••••••" />
+        </div>
+        <button id="t-adm-login-btn" class="btn btn-yellow btn-block" onclick="adminLogin()">LOGIN TO ADMIN</button>
+      </div>
+    </section>
+
+    <div id="admin-dashboard" class="hidden" style="display:flex; flex-direction:column; gap:1.3rem;">
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem;">
+        <div>
+          <span class="badge b-yellow">ADMIN CONNECTED</span>
+          <span id="admin-email-txt" class="muted" style="margin-left:0.5rem;"></span>
+        </div>
+        <button id="t-adm-logout-btn" class="btn btn-sm btn-danger" onclick="adminLogout()">Logout</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="card">
+          <div id="t-st-total" class="muted">TOTAL KEYS</div>
+          <div id="st-total" class="stat-num text-yellow">0</div>
+        </div>
+        <div class="card">
+          <div id="t-st-active" class="muted">ACTIVE KEYS</div>
+          <div id="st-active" class="stat-num text-green">0</div>
+        </div>
+        <div class="card">
+          <div id="t-st-unused" class="muted">UNUSED KEYS</div>
+          <div id="st-unused" class="stat-num">0</div>
+        </div>
+        <div class="card">
+          <div id="t-st-exp" class="muted">EXPIRED / DISABLED</div>
+          <div id="st-exp" class="stat-num text-red">0</div>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2 id="t-gen-title" style="margin-bottom:0.25rem;">GENERATE KEY</h2>
+        <p id="t-gen-sub" class="muted" style="margin-bottom:1rem;">Create custom or auto keys with flexible duration (1 second to 1 year+)</p>
+
+        <div class="form-grid">
+          <div>
+            <label id="t-lbl-custom">Custom Key (Optional)</label>
+            <input id="gen-custom-key" type="text" placeholder="Blank = Auto Generate" style="text-transform:uppercase;" />
+          </div>
+
+          <div>
+            <label id="t-lbl-label">Key Label / Note</label>
+            <input id="gen-label" type="text" placeholder="e.g. 1 Day VIP" value="VIP Key" />
+          </div>
+
+          <div>
+            <label id="t-lbl-qty">Quantity (1 - 50)</label>
+            <input id="gen-qty" type="number" min="1" max="50" value="1" />
+          </div>
+
+          <div>
+            <label id="t-lbl-dur">Duration Value</label>
+            <input id="gen-dur-val" type="number" min="1" value="1" />
+          </div>
+
+          <div>
+            <label id="t-lbl-unit">Time Unit</label>
+            <select id="gen-dur-unit">
+              <option value="seconds">Seconds</option>
+              <option value="minutes">Minutes</option>
+              <option value="hours">Hours</option>
+              <option value="days" selected>Days</option>
+              <option value="months">Months (30 Days)</option>
+              <option value="years">Years (365 Days)</option>
+            </select>
+          </div>
+
+          <div class="full">
+            <button id="gen-key-btn" class="btn btn-green btn-block" onclick="generateKeys()">+ GENERATE KEY</button>
+          </div>
+        </div>
+
+        <div id="last-gen-box" class="msg-box msg-ok hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+            <strong id="last-gen-code" style="font-family:monospace; font-size:1rem;"></strong>
+            <button id="t-copy-btn" class="btn btn-sm btn-yellow" onclick="copyLastGenerated()">COPY</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.7rem;">
+          <h2 id="t-allkeys-title">ALL KEYS</h2>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <input id="admin-search" type="text" placeholder="Search key or label..." style="width:190px;" oninput="renderKeysTable()" />
+            <select id="admin-filter" style="width:140px;" onchange="renderKeysTable()">
+              <option value="ALL">All</option>
+              <option value="UNUSED">Unused</option>
+              <option value="ACTIVE">Active</option>
+              <option value="EXPIRED">Expired</option>
+              <option value="DISABLED">Disabled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th id="t-th-key">Key</th>
+                <th id="t-th-status">Status</th>
+                <th id="t-th-dur">Duration</th>
+                <th id="t-th-exp">Expires At</th>
+                <th id="t-th-rem">Remaining</th>
+                <th id="t-th-act">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="keys-tbody">
+              <tr><td colspan="6" class="muted">Loading keys...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrITJxbabeDWgRYcmeTjf4VZpwhWsn0QU",
+      authDomain: "silver-xo.firebaseapp.com",
+      projectId: "silver-xo",
+      storageBucket: "silver-xo.firebasestorage.app",
+      messagingSenderId: "825796575786",
+      appId: "1:825796575786:web:8bd2dc7d77c2677dce3953"
+    };
+
+    const OFFICIAL_VPN_API = {
+      enabled: false,
+      endpoint: "",
+      apiKey: ""
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let keysCache = [];
+    let cdTimer = null;
+    let currentSessionUid = null;
+    let activeUserKeyDocId = null;
+    let currentExpiresAtMs = 0;
+    let lastGeneratedText = "";
+    let unsubscribeSession = null;
+    let vpnConnected = false;
+    let currentLang = "en";
+    let currentOrbSize = 52;
+    let activeLaunchedGameTag = "";
+
+    function setOrbSize(px) {
+      const clamped = Math.min(76, Math.max(28, Number(px) || 52));
+      currentOrbSize = clamped;
+      document.documentElement.style.setProperty("--pill-size", `${clamped}px`);
+      const slider = document.getElementById("orb-size-slider");
+      const lbl = document.getElementById("orb-size-lbl");
+      if (slider) slider.value = clamped;
+      if (lbl) lbl.textContent = `${clamped}px`;
+
+      if (window.AndroidOverlay && typeof window.AndroidOverlay.setSize === "function") {
+        window.AndroidOverlay.setSize(clamped);
+      }
+    }
+
+    function stepOrbSize(delta) {
+      setOrbSize(currentOrbSize + delta);
+    }
+
+    function toggleOrbControls() {
+      const bar = document.getElementById("orb-controls-bar");
+      if (bar) bar.classList.toggle("hidden");
+    }
+
+    function closeExpiryModalAndFocusInput() {
+      document.getElementById("expiry-warning-modal").classList.add("hidden");
+      const input = document.getElementById("user-key-input");
+      if (input) input.focus();
+    }
+
+    function formatExactKeyOrbTime(diffMs) {
+      if (diffMs <= 0) return "00:00:00";
+      const totalSec = Math.floor(diffMs / 1000);
+      const d = Math.floor(totalSec / 86400);
+      const h = Math.floor((totalSec % 86400) / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+
+      if (d > 0) {
+        return `${d}d ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    const I18N = {
+      en: {
+        userTab: "USER PANEL",
+        adminTab: "ADMIN PANEL",
+        expiredTitle: "WARNING:",
+        expiredDesc: "Don't use ban risk — Ban risk. Contact your seller to buy key.",
+        actHeading: "KEY ACTIVATION",
+        actSub: "Countdown starts from server time once you activate your key",
+        keyPlaceholder: "ENTER KEY HERE (e.g. VIP-1DAY-9X2A)",
+        activateBtn: "ACTIVATE KEY",
+        activeBadge: "ACTIVE LICENSE",
+        expiresAtLbl: "EXPIRES AT",
+        days: "DAYS",
+        hours: "HOURS",
+        mins: "MINUTES",
+        secs: "SECONDS",
+        lockTitle: "LAUNCHER LOCKED",
+        lockDesc: "Activate a valid key first to unlock game launch buttons.",
+        launcherHeading: "GAME LAUNCHER",
+        orbSettingLbl: "FLOATING TIMER LOGO SIZE",
+        orbSettingSub: "Adjust circular timer from Flashlight dot (28px) to Camera size (76px)",
+        vpnLabel: "VPN CONNECTION",
+        vpnDisconnected: "DISCONNECTED",
+        vpnConnecting: "CONNECTING...",
+        vpnConnected: "CONNECTED",
+        vpnConnectBtn: "CONNECT VPN",
+        vpnDisconnectBtn: "DISCONNECT VPN",
+        vpnSubOff: "Ready for official VPN API integration (no fake tunnel)",
+        vpnSubOn: "Session active — attach official VPN API in code for live routing",
+        archLbl: "ARCH",
+        devLbl: "DEVICE",
+        apiLbl: "VPN API",
+        openFfMax: "OPEN FREE FIRE MAX",
+        openFfIndia: "OPEN FREE FIRE INDIA",
+        openFf: "OPEN FREE FIRE",
+        admLoginTitle: "ADMIN PANEL LOGIN",
+        admLoginSub: "Sign in with your Firebase Admin Email & Password",
+        admEmailLbl: "Admin Email",
+        admPassLbl: "Password",
+        admLoginBtn: "LOGIN TO ADMIN",
+        admLogoutBtn: "Logout",
+        stTotal: "TOTAL KEYS",
+        stActive: "ACTIVE KEYS",
+        stUnused: "UNUSED KEYS",
+        stExp: "EXPIRED / DISABLED",
+        genTitle: "GENERATE KEY",
+        genSub: "Create custom or auto keys with flexible duration (1 second to 1 year+)",
+        lblCustom: "Custom Key (Optional)",
+        lblLabel: "Key Label / Note",
+        lblQty: "Quantity (1 - 50)",
+        lblDur: "Duration Value",
+        lblUnit: "Time Unit",
+        genBtn: "+ GENERATE KEY",
+        copyBtn: "COPY",
+        allKeysTitle: "ALL KEYS",
+        thKey: "Key",
+        thStatus: "Status",
+        thDur: "Duration",
+        thExp: "Expires At",
+        thRem: "Remaining",
+        thAct: "Actions",
+        keyActivatedMsg: "Key activated! Exact key timer started and Game Launcher is unlocked.",
+        timerEndedToast: "WARNING: Don't use ban risk. Contact your seller to buy key."
+      },
+      hi: {
+        userTab: "यूजर पैनल",
+        adminTab: "एडमिन पैनल",
+        expiredTitle: "वार्निंग:",
+        expiredDesc: "Don't use ban risk — Ban risk. Contact your seller to buy key.",
+        actHeading: "की एक्टिवेशन",
+        actSub: "की एक्टिवेट करते ही सर्वर टाइम से काउंटडाउन शुरू होगा",
+        keyPlaceholder: "यहाँ की डालें (उदा. VIP-1DAY-9X2A)",
+        activateBtn: "की एक्टिवेट करें",
+        activeBadge: "एक्टिव लाइसेंस",
+        expiresAtLbl: "समाप्ति समय",
+        days: "दिन",
+        hours: "घंटे",
+        mins: "मिनट",
+        secs: "सेकंड",
+        lockTitle: "लॉन्चर लॉक है",
+        lockDesc: "गेम बटन खोलने के लिए पहले वैध की एक्टिवेट करें।",
+        launcherHeading: "गेम लॉन्चर",
+        orbSettingLbl: "फ्लोटिंग टाइमर लोगो साइज़",
+        orbSettingSub: "गोल टाइमर को फ्लैशलाइट डॉट (28px) से कैमरा साइज़ (76px) तक एडजस्ट करें",
+        vpnLabel: "वीपीएन कनेक्शन",
+        vpnDisconnected: "डिस्कनेक्टेड",
+        vpnConnecting: "कनेक्ट हो रहा है...",
+        vpnConnected: "कनेक्टेड",
+        vpnConnectBtn: "वीपीएन कनेक्ट करें",
+        vpnDisconnectBtn: "वीपीएन डिस्कनेक्ट करें",
+        vpnSubOff: "ऑफिशियल VPN API जोड़ने के लिए तैयार (कोई फेक कनेक्शन नहीं)",
+        vpnSubOn: "सेशन चालू — लाइव रूटिंग के लिए कोड में ऑफिशियल VPN API जोड़ें",
+        archLbl: "आर्किटेक्चर",
+        devLbl: "डिवाइस",
+        apiLbl: "वीपीएन एपीआई",
+        openFfMax: "ओपन फ्री फायर मैक्स",
+        openFfIndia: "ओपन फ्री फायर इंडिया",
+        openFf: "ओपन फ्री फायर",
+        admLoginTitle: "एडमिन पैनल लॉगिन",
+        admLoginSub: "अपने Firebase Admin ईमेल और पासवर्ड से लॉगिन करें",
+        admEmailLbl: "एडमिन ईमेल",
+        admPassLbl: "पासवर्ड",
+        admLoginBtn: "एडमिन लॉगिन",
+        admLogoutBtn: "लॉगआउट",
+        stTotal: "कुल कीज़",
+        stActive: "एक्टिव कीज़",
+        stUnused: "अनयूज्ड कीज़",
+        stExp: "एक्सपायर्ड / डिसेबल्ड",
+        genTitle: "की जनरेट करें",
+        genSub: "कस्टम या ऑटो की बनाएं और टाइमिंग सेट करें (1 सेकंड से 1 साल+)",
+        lblCustom: "कस्टम की (वैकल्पिक)",
+        lblLabel: "की नाम / नोट",
+        lblQty: "संख्या (1 - 50)",
+        lblDur: "अवधि मान",
+        lblUnit: "समय इकाई",
+        genBtn: "+ की जनरेट करें",
+        copyBtn: "कॉपी",
+        allKeysTitle: "सभी कीज़",
+        thKey: "की",
+        thStatus: "स्टेटस",
+        thDur: "अवधि",
+        thExp: "एक्सपायरी समय",
+        thRem: "बचा समय",
+        thAct: "एक्शन",
+        keyActivatedMsg: "की एक्टिवेट हो गई! की का असली टाइमर शुरू हो गया है।",
+        timerEndedToast: "WARNING: Don't use ban risk. Contact your seller to buy key."
+      },
+      hinglish: {
+        userTab: "USER PANEL",
+        adminTab: "ADMIN PANEL",
+        expiredTitle: "WARNING:",
+        expiredDesc: "Don't use ban risk — Ban risk. Contact your seller to buy key.",
+        actHeading: "KEY ACTIVATION",
+        actSub: "Key activate karte hi server time se countdown start hoga",
+        keyPlaceholder: "YAHAN KEY DALEIN (e.g. VIP-1DAY-9X2A)",
+        activateBtn: "ACTIVATE KEY",
+        activeBadge: "ACTIVE LICENSE",
+        expiresAtLbl: "EXPIRES AT",
+        days: "DAYS",
+        hours: "HOURS",
+        mins: "MINUTES",
+        secs: "SECONDS",
+        lockTitle: "LAUNCHER LOCKED",
+        lockDesc: "Game buttons unlock karne ke liye pehle valid key activate karein.",
+        launcherHeading: "GAME LAUNCHER",
+        orbSettingLbl: "FLOATING TIMER LOGO SIZE",
+        orbSettingSub: "Gol timer ko Flashlight dot (28px) se Camera size (76px) tak adjust karein",
+        vpnLabel: "VPN CONNECTION",
+        vpnDisconnected: "DISCONNECTED",
+        vpnConnecting: "CONNECTING...",
+        vpnConnected: "CONNECTED",
+        vpnConnectBtn: "CONNECT VPN",
+        vpnDisconnectBtn: "DISCONNECT VPN",
+        vpnSubOff: "Official VPN API ke liye ready (koi fake tunnel nahi)",
+        vpnSubOn: "Session on — live routing ke liye official VPN API add karein",
+        archLbl: "ARCH",
+        devLbl: "DEVICE",
+        apiLbl: "VPN API",
+        openFfMax: "OPEN FREE FIRE MAX",
+        openFfIndia: "OPEN FREE FIRE INDIA",
+        openFf: "OPEN FREE FIRE",
+        admLoginTitle: "ADMIN PANEL LOGIN",
+        admLoginSub: "Apne Firebase Admin Email & Password se login karein",
+        admEmailLbl: "Admin Email",
+        admPassLbl: "Password",
+        admLoginBtn: "LOGIN TO ADMIN",
+        admLogoutBtn: "Logout",
+        stTotal: "TOTAL KEYS",
+        stActive: "ACTIVE KEYS",
+        stUnused: "UNUSED KEYS",
+        stExp: "EXPIRED / DISABLED",
+        genTitle: "GENERATE KEY",
+        genSub: "Custom ya auto key banayein aur timing set karein (1 sec se 1 yr+)",
+        lblCustom: "Custom Key (Optional)",
+        lblLabel: "Key Label / Note",
+        lblQty: "Quantity (1 - 50)",
+        lblDur: "Duration Value",
+        lblUnit: "Time Unit",
+        genBtn: "+ GENERATE KEY",
+        copyBtn: "COPY",
+        allKeysTitle: "ALL KEYS",
+        thKey: "Key",
+        thStatus: "Status",
+        thDur: "Duration",
+        thExp: "Expires At",
+        thRem: "Remaining",
+        thAct: "Actions",
+        keyActivatedMsg: "Key activate ho gayi! Exact key timer chalu hai aur Game Launcher unlock hai.",
+        timerEndedToast: "WARNING: Don't use ban risk. Contact your seller to buy key."
+      },
+      bn: {
+        userTab: "ইউজার প্যানেল",
+        adminTab: "অ্যাডমিন প্যানেল",
+        expiredTitle: "WARNING:",
+        expiredDesc: "Don't use ban risk — Ban risk. Contact your seller to buy key.",
+        actHeading: "কী অ্যাক্টিভেশন",
+        actSub: "কী অ্যাক্টিভেট করলেই সার্ভার সময় অনুযায়ী কাউন্টডাউন শুরু হবে",
+        keyPlaceholder: "এখানে কী লিখুন (যেমন VIP-1DAY-9X2A)",
+        activateBtn: "কী অ্যাক্টিভেট করুন",
+        activeBadge: "সক্রিয় লাইসেন্স",
+        expiresAtLbl: "মেয়াদ শেষ",
+        days: "দিন",
+        hours: "ঘণ্টা",
+        mins: "মিনিট",
+        secs: "সেকেন্ড",
+        lockTitle: "লঞ্চার লক করা আছে",
+        lockDesc: "গেম বোতাম খুলতে আগে বৈধ কী অ্যাক্টিভেট করুন।",
+        launcherHeading: "গেম লঞ্চার",
+        orbSettingLbl: "ফ্লোটিং টাইমার লোগো সাইজ",
+        orbSettingSub: "গোল টাইমার ফ্ল্যাশলাইট ডট (28px) থেকে ক্যামেরা সাইজ (76px) পর্যন্ত ছোট-বড় করুন",
+        vpnLabel: "ভিপিএন কানেকশন",
+        vpnDisconnected: "সংযোগ বিচ্ছিন্ন",
+        vpnConnecting: "সংযুক্ত হচ্ছে...",
+        vpnConnected: "সংযুক্ত",
+        vpnConnectBtn: "ভিপিএন কানেক্ট করুন",
+        vpnDisconnectBtn: "ভিপিএন ডিসকানেক্ট করুন",
+        vpnSubOff: "অফিসিয়াল VPN API যুক্ত করার জন্য প্রস্তুত (কোনো ভুয়া টানেল নেই)",
+        vpnSubOn: "সেশন সক্রিয় — লাইভ রাউটিংয়ের জন্য অফিসিয়াল VPN API যুক্ত করুন",
+        archLbl: "আর্কিটেকচার",
+        devLbl: "ডিভাইস",
+        apiLbl: "ভিপিএন এপিআই",
+        openFfMax: "ওপেন ফ্রি ফায়ার ম্যাক্স",
+        openFfIndia: "ওপেন ফ্রি ফায়ার ইন্ডিয়া",
+        openFf: "ওপেন ফ্রি ফায়ার",
+        admLoginTitle: "অ্যাডমিন লগইন",
+        admLoginSub: "আপনার Firebase Admin ইমেল ও পাসওয়ার্ড দিয়ে লগইন করুন",
+        admEmailLbl: "অ্যাডমিন ইমেল",
+        admPassLbl: "পাসওয়ার্ড",
+        admLoginBtn: "অ্যাডমিন লগইন",
+        admLogoutBtn: "লগআউট",
+        stTotal: "মোট কী",
+        stActive: "সক্রিয় কী",
+        stUnused: "অব্যবহৃত কী",
+        stExp: "মেয়াদোত্তীর্ণ / নিষ্ক্রিয়",
+        genTitle: "কী তৈরি করুন",
+        genSub: "কাস্টম বা অটো কী তৈরি করুন এবং সময় নির্ধারণ করুন (১ সেকেন্ড থেকে ১ বছর+)",
+        lblCustom: "কাস্টম কী (ঐচ্ছিক)",
+        lblLabel: "কী লেবেল / নোট",
+        lblQty: "পরিমাণ (১ - ৫০)",
+        lblDur: "সময়ের মান",
+        lblUnit: "সময়ের একক",
+        genBtn: "+ কী তৈরি করুন",
+        copyBtn: "কপি",
+        allKeysTitle: "সব কীসমূহ",
+        thKey: "কী",
+        thStatus: "স্ট্যাটাস",
+        thDur: "সময়কাল",
+        thExp: "মেয়াদ শেষ",
+        thRem: "বাকি সময়",
+        thAct: "অ্যাকশন",
+        keyActivatedMsg: "কী সক্রিয় হয়েছে! আসল কীর টাইমার শুরু হয়েছে।",
+        timerEndedToast: "WARNING: Don't use ban risk. Contact your seller to buy key."
+      },
+      it: {
+        userTab: "PANNELLO UTENTE",
+        adminTab: "PANNELLO ADMIN",
+        expiredTitle: "WARNING:",
+        expiredDesc: "Don't use ban risk — Ban risk. Contact your seller to buy key.",
+        actHeading: "ATTIVAZIONE CHIAVE",
+        actSub: "Il conto alla rovescia parte dall'ora del server all'attivazione della chiave",
+        keyPlaceholder: "INSERISCI CHIAVE QUI (es. VIP-1DAY-9X2A)",
+        activateBtn: "ATTIVA CHIAVE",
+        activeBadge: "LICENZA ATTIVA",
+        expiresAtLbl: "SCADE IL",
+        days: "GIORNI",
+        hours: "ORE",
+        mins: "MINUTI",
+        secs: "SECONDI",
+        lockTitle: "LAUNCHER BLOCCATO",
+        lockDesc: "Attiva prima una chiave valida per sbloccare i pulsanti di avvio gioco.",
+        launcherHeading: "GAME LAUNCHER",
+        orbSettingLbl: "DIMENSIONE LOGO TIMER FLOTTANTE",
+        orbSettingSub: "Regola il timer circolare da punto flash (28px) a fotocamera (76px)",
+        vpnLabel: "CONNESSIONE VPN",
+        vpnDisconnected: "DISCONNESSO",
+        vpnConnecting: "CONNESSIONE...",
+        vpnConnected: "CONNESSO",
+        vpnConnectBtn: "CONNETTI VPN",
+        vpnDisconnectBtn: "DISCONNETTI VPN",
+        vpnSubOff: "Pronto per l'integrazione API VPN ufficiale (nessun tunnel fittizio)",
+        vpnSubOn: "Sessione attiva — collega un'API VPN ufficiale per il routing reale",
+        archLbl: "ARCH",
+        devLbl: "DISPOSITIVO",
+        apiLbl: "API VPN",
+        openFfMax: "APRI FREE FIRE MAX",
+        openFfIndia: "APRI FREE FIRE INDIA",
+        openFf: "APRI FREE FIRE",
+        admLoginTitle: "ACCESSO ADMIN",
+        admLoginSub: "Accedi con Email e Password Admin di Firebase",
+        admEmailLbl: "Email Admin",
+        admPassLbl: "Password",
+        admLoginBtn: "ACCEDI COME ADMIN",
+        admLogoutBtn: "Esci",
+        stTotal: "CHIAVI TOTALI",
+        stActive: "CHIAVI ATTIVE",
+        stUnused: "CHIAVI NON USATE",
+        stExp: "SCADUTE / DISABILITATE",
+        genTitle: "GENERA CHIAVE",
+        genSub: "Crea chiavi personalizzate o automatiche con durata personalizzata (da 1 sec a 1 anno+)",
+        lblCustom: "Chiave Personalizzata (Opzionale)",
+        lblLabel: "Etichetta / Nota Chiave",
+        lblQty: "Quantità (1 - 50)",
+        lblDur: "Valore Durata",
+        lblUnit: "Unità di Tempo",
+        genBtn: "+ GENERA CHIAVE",
+        copyBtn: "COPIA",
+        allKeysTitle: "TUTTE LE CHIAVI",
+        thKey: "Chiave",
+        thStatus: "Stato",
+        thDur: "Durata",
+        thExp: "Scadenza",
+        thRem: "Rimanente",
+        thAct: "Azioni",
+        keyActivatedMsg: "Chiave attivata! Il timer esatto della chiave è partito e il Game Launcher è sbloccato.",
+        timerEndedToast: "WARNING: Don't use ban risk. Contact your seller to buy key."
+      }
+    };
+
+    function t(key) {
+      return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+    }
+
+    function setLanguage(lang) {
+      currentLang = I18N[lang] ? lang : "en";
+      document.getElementById("lang-select").value = currentLang;
+
+      const mapText = {
+        "tab-user-btn": "userTab",
+        "tab-admin-btn": "adminTab",
+        "t-expired-title": "expiredTitle",
+        "t-expired-desc": "expiredDesc",
+        "t-act-heading": "actHeading",
+        "t-act-sub": "actSub",
+        "activate-btn": "activateBtn",
+        "t-active-badge": "activeBadge",
+        "t-expires-at-lbl": "expiresAtLbl",
+        "t-cd-days": "days",
+        "t-cd-hours": "hours",
+        "t-cd-mins": "mins",
+        "t-cd-secs": "secs",
+        "t-lock-title": "lockTitle",
+        "t-lock-desc": "lockDesc",
+        "t-launcher-heading": "launcherHeading",
+        "t-orb-setting-lbl": "orbSettingLbl",
+        "t-orb-setting-sub": "orbSettingSub",
+        "t-vpn-label": "vpnLabel",
+        "t-arch-lbl": "archLbl",
+        "t-dev-lbl": "devLbl",
+        "t-api-lbl": "apiLbl",
+        "btn-ffmax": "openFfMax",
+        "btn-ffindia": "openFfIndia",
+        "btn-ff": "openFf",
+        "t-adm-login-title": "admLoginTitle",
+        "t-adm-login-sub": "admLoginSub",
+        "t-adm-email-lbl": "admEmailLbl",
+        "t-adm-pass-lbl": "admPassLbl",
+        "t-adm-login-btn": "admLoginBtn",
+        "t-adm-logout-btn": "admLogoutBtn",
+        "t-st-total": "stTotal",
+        "t-st-active": "stActive",
+        "t-st-unused": "stUnused",
+        "t-st-exp": "stExp",
+        "t-gen-title": "genTitle",
+        "t-gen-sub": "genSub",
+        "t-lbl-custom": "lblCustom",
+        "t-lbl-label": "lblLabel",
+        "t-lbl-qty": "lblQty",
+        "t-lbl-dur": "lblDur",
+        "t-lbl-unit": "lblUnit",
+        "gen-key-btn": "genBtn",
+        "t-copy-btn": "copyBtn",
+        "t-allkeys-title": "allKeysTitle",
+        "t-th-key": "thKey",
+        "t-th-status": "thStatus",
+        "t-th-dur": "thDur",
+        "t-th-exp": "thExp",
+        "t-th-rem": "thRem",
+        "t-th-act": "thAct"
+      };
+
+      Object.keys(mapText).forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (id === "btn-ffmax" || id === "btn-ffindia" || id === "btn-ff") {
+          el.innerHTML = `&#9654; ${t(mapText[id])}`;
+        } else {
+          el.textContent = t(mapText[id]);
+        }
+      });
+
+      document.getElementById("user-key-input").placeholder = t("keyPlaceholder");
+      updateVpnUi();
+      if (keysCache.length > 0) renderKeysTable();
+    }
+
+    function updateVpnUi() {
+      const badge = document.getElementById("vpn-state-badge");
+      const btn = document.getElementById("vpn-toggle-btn");
+      const sub = document.getElementById("vpn-sub-status");
+
+      if (vpnConnected) {
+        badge.textContent = t("vpnConnected");
+        badge.className = "badge b-green";
+        btn.textContent = t("vpnDisconnectBtn");
+        btn.className = "btn btn-danger";
+        sub.textContent = t("vpnSubOn");
+      } else {
+        badge.textContent = t("vpnDisconnected");
+        badge.className = "badge b-muted";
+        btn.textContent = t("vpnConnectBtn");
+        btn.className = "btn btn-yellow";
+        sub.textContent = t("vpnSubOff");
+      }
+    }
+
+    async function toggleVpnConnection() {
+      const btn = document.getElementById("vpn-toggle-btn");
+      const badge = document.getElementById("vpn-state-badge");
+      const targetConnect = !vpnConnected;
+
+      btn.disabled = true;
+      badge.textContent = t("vpnConnecting");
+      badge.className = "badge b-yellow";
+
+      try {
+        if (OFFICIAL_VPN_API.enabled && OFFICIAL_VPN_API.endpoint) {
+          const res = await fetch(OFFICIAL_VPN_API.endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${OFFICIAL_VPN_API.apiKey}`
+            },
+            body: JSON.stringify({ action: targetConnect ? "connect" : "disconnect" })
+          });
+          if (!res.ok) throw new Error("VPN API request failed");
+        } else {
+          await new Promise((r) => setTimeout(r, 450));
+        }
+
+        vpnConnected = targetConnect;
+        updateVpnUi();
+        toast(vpnConnected ? `${t("vpnLabel")}: ${t("vpnConnected")}` : `${t("vpnLabel")}: ${t("vpnDisconnected")}`);
+      } catch (err) {
+        updateVpnUi();
+        toast(err.message || "VPN toggle failed", true);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function switchPanel(panel) {
+      const userPanel = document.getElementById("user-panel");
+      const adminPanel = document.getElementById("admin-panel");
+      const tabUser = document.getElementById("tab-user-btn");
+      const tabAdmin = document.getElementById("tab-admin-btn");
+
+      if (panel === "user") {
+        userPanel.classList.remove("hidden");
+        adminPanel.classList.add("hidden");
+        tabUser.classList.add("active");
+        tabAdmin.classList.remove("active");
+      } else {
+        adminPanel.classList.remove("hidden");
+        userPanel.classList.add("hidden");
+        tabAdmin.classList.add("active");
+        tabUser.classList.remove("active");
+      }
+    }
+
+    function toast(msg, isErr = false) {
+      const wrap = document.getElementById("toast-wrap");
+      const el = document.createElement("div");
+      el.className = `toast ${isErr ? "err" : ""}`;
+      el.textContent = msg;
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    function durationToMs(val, unit) {
+      const n = Number(val);
+      const map = {
+        seconds: 1000,
+        minutes: 60 * 1000,
+        hours: 3600 * 1000,
+        days: 86400 * 1000,
+        months: 30 * 86400 * 1000,
+        years: 365 * 86400 * 1000
+      };
+      return n * (map[unit] || 86400000);
+    }
+
+    function formatRemaining(ms) {
+      if (ms <= 0) return "00d 00h 00m 00s";
+      const sec = Math.floor(ms / 1000);
+      const d = Math.floor(sec / 86400);
+      const h = Math.floor((sec % 86400) / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${d}d ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+    }
+
+    function extractMillis(tsField) {
+      if (!tsField) return 0;
+      if (typeof tsField.toMillis === "function") return tsField.toMillis();
+      if (typeof tsField === "number") return tsField;
+      if (tsField.seconds) return tsField.seconds * 1000;
+      return 0;
+    }
+
+    (function detectDevice() {
+      const ua = navigator.userAgent || "";
+      let arch = "64-BIT / Standard";
+      if (/arm64|aarch64|x86_64|Win64|WOW64/i.test(ua)) {
+        arch = "64-BIT";
+      } else if (/armv7|i686|i386/i.test(ua)) {
+        arch = "32-BIT";
+      }
+
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+        navigator.userAgentData.getHighEntropyValues(["bitness"]).then((h) => {
+          if (h.bitness) document.getElementById("arch-info").textContent = `${h.bitness}-BIT`;
+        }).catch(() => {});
+      }
+
+      document.getElementById("arch-info").textContent = arch;
+      document.getElementById("os-info").textContent = /Android/i.test(ua)
+        ? "Android"
+        : /iPhone|iPad/i.test(ua)
+        ? "iOS"
+        : navigator.platform || "Device";
+
+      if (OFFICIAL_VPN_API.enabled && OFFICIAL_VPN_API.endpoint) {
+        document.getElementById("vpn-api-status").textContent = "API CONFIGURED";
+        document.getElementById("vpn-api-status").className = "text-green";
+      }
+    })();
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentSessionUid = user.uid;
+        document.getElementById("user-session-badge").textContent = "READY";
+        document.getElementById("user-session-badge").className = "badge b-green";
+        listenToUserSession(user.uid);
+      } else {
+        auth.signInAnonymously().catch((err) => {
+          toast("Enable Anonymous Auth in Firebase: " + err.message, true);
+        });
+      }
+
+      if (user && !user.isAnonymous) {
+        document.getElementById("admin-login-card").classList.add("hidden");
+        document.getElementById("admin-dashboard").classList.remove("hidden");
+        document.getElementById("admin-email-txt").textContent = user.email;
+        listenToAllKeys();
+      } else {
+        document.getElementById("admin-login-card").classList.remove("hidden");
+        document.getElementById("admin-dashboard").classList.add("hidden");
+      }
+    });
+
+    function listenToUserSession(uid) {
+      if (unsubscribeSession) unsubscribeSession();
+      unsubscribeSession = db.collection("user_sessions").doc(uid).onSnapshot((snap) => {
+        if (!snap.exists || !snap.data().keyCode) {
+          lockLauncher(false);
+          return;
+        }
+        const data = snap.data();
+        const expMs = extractMillis(data.expiresAt);
+
+        if (data.status !== "ACTIVE" || Date.now() >= expMs) {
+          markExpired(data.keyCode, uid);
+          lockLauncher(data.status === "ACTIVE" || data.status === "EXPIRED");
+          return;
+        }
+
+        activeUserKeyDocId = data.keyCode;
+        unlockLauncher(data, expMs);
+      }, (err) => {
+        console.warn("Session listener warning:", err);
+      });
+    }
+
+    async function activateKey() {
+      const input = document.getElementById("user-key-input");
+      const btn = document.getElementById("activate-btn");
+      const fb = document.getElementById("user-feedback");
+      const rawKey = input.value.trim().toUpperCase();
+
+      if (!rawKey) return toast("Please enter a key!", true);
+
+      if (!currentSessionUid) {
+        try {
+          const cred = await auth.signInAnonymously();
+          currentSessionUid = cred.user.uid;
+        } catch (e) {
+          return toast("Session Error: Enable Anonymous Auth in Firebase.", true);
+        }
+      }
+
+      btn.disabled = true;
+      btn.textContent = "CHECKING...";
+      fb.classList.add("hidden");
+
+      try {
+        const keyRef = db.collection("keys").doc(rawKey);
+        let activatedPayload = null;
+        let computedExpMs = 0;
+
+        await db.runTransaction(async (tx) => {
+          const snap = await tx.get(keyRef);
+          if (!snap.exists) {
+            throw new Error("Invalid Key: Key does not exist.");
+          }
+
+          const k = snap.data();
+          if (k.status === "DISABLED") {
+            throw new Error("This key has been disabled by Admin.");
+          }
+          if (k.status === "EXPIRED") {
+            throw new Error("This key has already expired.");
+          }
+          if (k.status !== "UNUSED" || k.activatedAt !== null) {
+            throw new Error("This key has already been used.");
+          }
+
+          const nowTs = firebase.firestore.Timestamp.now();
+          const durMs = Number(k.durationMs) || durationToMs(k.durationVal || 1, k.durationUnit || "days");
+          computedExpMs = nowTs.toMillis() + durMs;
+          const expTs = firebase.firestore.Timestamp.fromMillis(computedExpMs);
+
+          tx.update(keyRef, {
+            status: "ACTIVE",
+            activatedAt: nowTs,
+            expiresAt: expTs,
+            activatedBy: currentSessionUid
+          });
+
+          activatedPayload = {
+            uid: currentSessionUid,
+            keyCode: rawKey,
+            label: k.label || "VIP License",
+            status: "ACTIVE",
+            activatedAt: nowTs,
+            expiresAt: expTs
+          };
+
+          tx.set(db.collection("user_sessions").doc(currentSessionUid), activatedPayload);
+        });
+
+        if (activatedPayload) {
+          activeUserKeyDocId = rawKey;
+          unlockLauncher(activatedPayload, computedExpMs);
+        }
+
+        input.value = "";
+        fb.textContent = t("keyActivatedMsg");
+        fb.className = "msg-box msg-ok";
+        fb.classList.remove("hidden");
+        toast(t("keyActivatedMsg"));
+      } catch (err) {
+        fb.textContent = err.message;
+        fb.className = "msg-box msg-err";
+        fb.classList.remove("hidden");
+        toast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = t("activateBtn");
+      }
+    }
+
+    function unlockLauncher(data, fallbackExpMs = 0) {
+      const expMs = extractMillis(data.expiresAt) || fallbackExpMs;
+      if (!expMs || Date.now() >= expMs) {
+        lockLauncher(true);
+        return;
+      }
+
+      currentExpiresAtMs = expMs;
+
+      document.getElementById("expiry-warning-modal").classList.add("hidden");
+      document.getElementById("user-expired-alert").classList.add("hidden");
+      document.getElementById("active-license-card").classList.remove("hidden");
+      document.getElementById("launcher-lock").classList.add("hidden");
+      document.getElementById("floating-timer-hud").classList.remove("hidden");
+
+      document.getElementById("user-session-badge").textContent = "ACTIVE";
+      document.getElementById("user-session-badge").className = "badge b-green";
+
+      document.getElementById("active-key-label").textContent = `${data.label || "VIP"} (${data.keyCode})`;
+      document.getElementById("active-expiry-txt").textContent = new Date(expMs).toLocaleString();
+
+      ["btn-ffmax", "btn-ffindia", "btn-ff"].forEach((id) => {
+        document.getElementById(id).disabled = false;
+      });
+
+      if (window.AndroidOverlay && typeof window.AndroidOverlay.startTimerOverlay === "function") {
+        window.AndroidOverlay.startTimerOverlay(expMs, currentOrbSize);
+      }
+
+      startCountdown(expMs, data.keyCode);
+    }
+
+    function lockLauncher(expired) {
+      if (cdTimer) clearInterval(cdTimer);
+      currentExpiresAtMs = 0;
+      activeLaunchedGameTag = "";
+      document.getElementById("orb-game-tag").classList.add("hidden");
+      document.getElementById("circular-timer-orb").classList.remove("game-mode");
+
+      document.getElementById("active-license-card").classList.add("hidden");
+      document.getElementById("launcher-lock").classList.remove("hidden");
+      document.getElementById("floating-timer-hud").classList.add("hidden");
+
+      ["btn-ffmax", "btn-ffindia", "btn-ff"].forEach((id) => {
+        document.getElementById(id).disabled = true;
+      });
+
+      if (window.AndroidOverlay && typeof window.AndroidOverlay.stopTimerOverlay === "function") {
+        window.AndroidOverlay.stopTimerOverlay();
+      }
+
+      if (expired) {
+        document.getElementById("user-expired-alert").classList.remove("hidden");
+        document.getElementById("user-session-badge").textContent = "EXPIRED";
+        document.getElementById("user-session-badge").className = "badge b-red";
+        document.getElementById("expiry-warning-modal").classList.remove("hidden");
+      }
+    }
+
+    function startCountdown(expMs, keyCode) {
+      if (cdTimer) clearInterval(cdTimer);
+
+      const orbEl = document.getElementById("circular-timer-orb");
+      const orbTxtEl = document.getElementById("orb-time-text");
+
+      const tick = () => {
+        const diff = expMs - Date.now();
+        if (diff <= 0) {
+          clearInterval(cdTimer);
+          markExpired(keyCode, currentSessionUid);
+          lockLauncher(true);
+          toast(t("timerEndedToast"), true);
+          return;
+        }
+
+        const totalSec = Math.floor(diff / 1000);
+        document.getElementById("cd-d").textContent = String(Math.floor(totalSec / 86400)).padStart(2, "0");
+        document.getElementById("cd-h").textContent = String(Math.floor((totalSec % 86400) / 3600)).padStart(2, "0");
+        document.getElementById("cd-m").textContent = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+        document.getElementById("cd-s").textContent = String(totalSec % 60).padStart(2, "0");
+
+        if (orbTxtEl) {
+          orbTxtEl.textContent = formatExactKeyOrbTime(diff);
+        }
+        if (orbEl) {
+          if (totalSec <= 10) {
+            orbEl.classList.add("low-time");
+          } else {
+            orbEl.classList.remove("low-time");
+          }
+        }
+      };
+
+      tick();
+      cdTimer = setInterval(tick, 1000);
+    }
+
+    async function markExpired(keyCode, uid) {
+      try {
+        if (keyCode) {
+          await db.collection("keys").doc(keyCode).update({ status: "EXPIRED" }).catch(() => {});
+        }
+        if (uid) {
+          await db.collection("user_sessions").doc(uid).update({ status: "EXPIRED" }).catch(() => {});
+        }
+      } catch (e) {}
+    }
+
+    function launchGame(pkgName, title) {
+      if (!currentExpiresAtMs || Date.now() >= currentExpiresAtMs) {
+        lockLauncher(true);
+        return;
+      }
+
+      const msg = document.getElementById("launcher-msg");
+      msg.classList.remove("hidden");
+
+      activeLaunchedGameTag = pkgName.includes("freefiremax") ? "FF MAX" : "FF";
+      const tagEl = document.getElementById("orb-game-tag");
+      const orbEl = document.getElementById("circular-timer-orb");
+      if (tagEl) {
+        tagEl.textContent = activeLaunchedGameTag;
+        tagEl.classList.remove("hidden");
+      }
+      if (orbEl) {
+        orbEl.classList.add("game-mode");
+      }
+      document.getElementById("floating-timer-hud").classList.remove("hidden");
+
+      if (window.AndroidOverlay && typeof window.AndroidOverlay.showOverGame === "function") {
+        window.AndroidOverlay.showOverGame(pkgName, currentOrbSize, currentExpiresAtMs);
+      }
+
+      const isAndroid = /Android/i.test(navigator.userAgent || "");
+      if (!isAndroid) {
+        msg.className = "msg-box msg-warn";
+        msg.textContent = `${title} (${pkgName}) can only be launched on an Android device.`;
+        return;
+      }
+
+      msg.className = "msg-box msg-ok";
+      msg.textContent = `Launching ${title} (${pkgName})...`;
+
+      // Try intent launch first, then fallback store URI if blocked/uninstalled
+      window.location.href = `intent://#Intent;package=${pkgName};scheme=android-app;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3D${pkgName};end`;
+    }
+
+    async function adminLogin() {
+      const email = document.getElementById("admin-email").value.trim();
+      const pass = document.getElementById("admin-pass").value;
+      if (!email || !pass) return toast("Enter Email and Password", true);
+
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        toast("Admin Login Success!");
+      } catch (err) {
+        toast(err.message, true);
+      }
+    }
+
+    function adminLogout() {
+      auth.signOut().then(() => {
+        switchPanel("user");
+        toast("Logged out");
+      });
+    }
+
+    function randomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let part = "";
+      for (let i = 0; i < 8; i++) part += chars[Math.floor(Math.random() * chars.length)];
+      return `NX-${part.slice(0, 4)}-${part.slice(4)}`;
+    }
+
+    async function generateKeys() {
+      const customRaw = document.getElementById("gen-custom-key").value.trim().toUpperCase().replace(/\s+/g, "-");
+      const label = document.getElementById("gen-label").value.trim() || "VIP Key";
+      const qty = Math.min(50, Math.max(1, parseInt(document.getElementById("gen-qty").value, 10) || 1));
+      const durVal = Math.max(1, parseInt(document.getElementById("gen-dur-val").value, 10) || 1);
+      const durUnit = document.getElementById("gen-dur-unit").value;
+      const durationMs = durationToMs(durVal, durUnit);
+
+      const btn = document.getElementById("gen-key-btn");
+      btn.disabled = true;
+      btn.textContent = "GENERATING...";
+
+      try {
+        const batch = db.batch();
+        const createdList = [];
+
+        for (let i = 0; i < qty; i++) {
+          const code = customRaw && qty === 1 ? customRaw : (customRaw ? `${customRaw}-${i + 1}` : randomCode());
+          const ref = db.collection("keys").doc(code);
+
+          batch.set(ref, {
+            keyCode: code,
+            label,
+            durationVal: durVal,
+            durationUnit: durUnit,
+            durationMs,
+            status: "UNUSED",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            activatedAt: null,
+            expiresAt: null,
+            activatedBy: null
+          });
+          createdList.push(code);
+        }
+
+        await batch.commit();
+        lastGeneratedText = createdList.join("\n");
+        document.getElementById("last-gen-code").textContent = createdList.length === 1 ? createdList[0] : `${createdList.length} Keys Generated`;
+        document.getElementById("last-gen-box").classList.remove("hidden");
+        document.getElementById("gen-custom-key").value = "";
+        toast(`${createdList.length} Key(s) Created!`);
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = t("genBtn");
+      }
+    }
+
+    function copyLastGenerated() {
+      if (!lastGeneratedText) return;
+      navigator.clipboard.writeText(lastGeneratedText);
+      toast("Copied!");
+    }
+
+    function listenToAllKeys() {
+      db.collection("keys").orderBy("createdAt", "desc").onSnapshot((snap) => {
+        keysCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        renderKeysTable();
+      }, (err) => {
+        toast("Check Firestore Rules: " + err.message, true);
+      });
+
+      setInterval(renderKeysTable, 1000);
+    }
+
+    function getStatus(k, now) {
+      if (k.status === "DISABLED") return "DISABLED";
+      if (k.status === "EXPIRED") return "EXPIRED";
+      if (k.status === "ACTIVE" && k.expiresAt) {
+        if (now >= extractMillis(k.expiresAt)) return "EXPIRED";
+        return "ACTIVE";
+      }
+      return "UNUSED";
+    }
+
+    function renderKeysTable() {
+      const tbody = document.getElementById("keys-tbody");
+      if (!tbody) return;
+
+      const q = (document.getElementById("admin-search").value || "").trim().toLowerCase();
+      const filter = document.getElementById("admin-filter").value;
+      const now = Date.now();
+
+      let active = 0, unused = 0, expOrDis = 0;
+
+      const rows = keysCache.filter((k) => {
+        const st = getStatus(k, now);
+        if (st === "ACTIVE") active++;
+        else if (st === "UNUSED") unused++;
+        else expOrDis++;
+
+        const okFilter = filter === "ALL" || st === filter;
+        const okQuery = !q || k.keyCode.toLowerCase().includes(q) || (k.label || "").toLowerCase().includes(q);
+        return okFilter && okQuery;
+      });
+
+      document.getElementById("st-total").textContent = keysCache.length;
+      document.getElementById("st-active").textContent = active;
+      document.getElementById("st-unused").textContent = unused;
+      document.getElementById("st-exp").textContent = expOrDis;
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="muted">No keys found</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((k) => {
+        const st = getStatus(k, now);
+        const bClass = st === "ACTIVE" ? "b-green" : st === "UNUSED" ? "b-yellow" : "b-red";
+        const expMs = extractMillis(k.expiresAt);
+        const expStr = expMs ? new Date(expMs).toLocaleString() : "Not Started";
+        const remStr = st === "ACTIVE" && expMs
+          ? `<span class="text-green">${formatRemaining(expMs - now)}</span>`
+          : st === "EXPIRED"
+          ? `<span class="text-red">00d 00h 00m 00s</span>`
+          : "—";
+
+        const nextDisable = st !== "DISABLED";
+        const toggleLabel = st === "DISABLED" ? "Enable" : "Disable";
+
+        return `
+          <tr>
+            <td>
+              <div class="code-txt">${k.keyCode}</div>
+              <div class="muted">${k.label || ""}</div>
+            </td>
+            <td><span class="badge ${bClass}">${st}</span></td>
+            <td>${k.durationVal} ${k.durationUnit}</td>
+            <td>${expStr}</td>
+            <td>${remStr}</td>
+            <td style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+              <button class="btn btn-sm btn-ghost" onclick="navigator.clipboard.writeText('${k.keyCode}'); toast('Copied')">Copy</button>
+              <button class="btn btn-sm btn-outline-y" onclick="toggleKey('${k.id}', ${nextDisable})">${toggleLabel}</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteKey('${k.id}')">Del</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function toggleKey(id, disable) {
+      await db.collection("keys").doc(id).update({
+        status: disable ? "DISABLED" : "UNUSED"
+      });
+      toast(disable ? "Key Disabled" : "Key Enabled");
+    }
+
+    async function deleteKey(id) {
+      if (!confirm("Delete this key?")) return;
+      await db.collection("keys").doc(id).delete();
+      toast("Key Deleted");
+    }
+  </script>
+</body>
+</html>
