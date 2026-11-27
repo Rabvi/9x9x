@@ -779,7 +779,7 @@
         <div class="game-box">
           <div>
             <h3>FREE FIRE MAX</h3>
-            <div class="muted">open=": com.dts.freefiremax.</div>
+            <div class="muted">pkg: com.dts.freefiremax</div>
           </div>
           <button id="btn-ffmax" class="btn btn-green btn-block" disabled onclick="launchGame('com.dts.freefiremax', 'Free Fire MAX')">
             &#9654; OPEN FREE FIRE MAX
@@ -1827,6 +1827,13 @@
         window.AndroidOverlay.showOverGame(pkgName, currentOrbSize, currentExpiresAtMs);
       }
 
+      if (window.AndroidApp && typeof window.AndroidApp.launchPackage === "function") {
+        msg.className = "msg-box msg-ok";
+        msg.textContent = `Launching ${title} (${pkgName})...`;
+        window.AndroidApp.launchPackage(pkgName);
+        return;
+      }
+
       const isAndroid = /Android/i.test(navigator.userAgent || "");
       if (!isAndroid) {
         msg.className = "msg-box msg-warn";
@@ -1837,7 +1844,6 @@
       msg.className = "msg-box msg-ok";
       msg.textContent = `Launching ${title} (${pkgName})...`;
 
-      // Try intent launch first, then fallback store URI if blocked/uninstalled
       window.location.href = `intent://#Intent;package=${pkgName};scheme=android-app;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3D${pkgName};end`;
     }
 
