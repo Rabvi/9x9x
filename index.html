@@ -789,9 +789,9 @@
         <div class="game-box">
           <div>
             <h3>FREE FIRE INDIA</h3>
-            <div class="muted">pkg: com.dts.freefireth</div>
+            <div class="muted">pkg: com.dts.freefireind</div>
           </div>
-          <button id="btn-ffindia" class="btn btn-yellow btn-block" disabled onclick="launchGame('com.dts.freefireth', 'Free Fire India')">
+          <button id="btn-ffindia" class="btn btn-yellow btn-block" disabled onclick="launchGame('com.dts.freefireind', 'Free Fire India')">
             &#9654; OPEN FREE FIRE INDIA
           </button>
         </div>
@@ -1464,6 +1464,9 @@
 
         vpnConnected = targetConnect;
         updateVpnUi();
+        if (window.AndroidApp && typeof window.AndroidApp.setVpnOverlay === "function") {
+          window.AndroidApp.setVpnOverlay(vpnConnected, currentExpiresAtMs || 0);
+        }
         toast(vpnConnected ? `${t("vpnLabel")}: ${t("vpnConnected")}` : `${t("vpnLabel")}: ${t("vpnDisconnected")}`);
       } catch (err) {
         updateVpnUi();
@@ -1844,6 +1847,7 @@
       msg.className = "msg-box msg-ok";
       msg.textContent = `Launching ${title} (${pkgName})...`;
 
+      // Try intent launch first, then fallback store URI if blocked/uninstalled
       window.location.href = `intent://#Intent;package=${pkgName};scheme=android-app;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3D${pkgName};end`;
     }
 
